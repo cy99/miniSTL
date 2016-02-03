@@ -39,8 +39,10 @@ void _construct(T* p, const T& val) {
 }
 
 template <typename T>
-void _destroy(T* p) {
-	p->~T();
+void _destroy(T* p, size_t n) {
+	for (size_t i = 0; i < n; i++) {
+		(p + i)->~T();
+	}
 }
 
 
@@ -68,7 +70,7 @@ public:
 	}
 
 	void destroy(pointer p, size_type n) {
-		_destroy(p);
+		_destroy(start, n);
 	}
 
 	size_type max_size() const __MINI_NOTHROW {
@@ -79,16 +81,24 @@ public:
 		return _allocate(n, (pointer)0);
 	}
 
-	void deallocate(pointer p) {
+	void deallocate(pointer p, size_type n) {
 		_deallocate(p);
 	}
 
-	// default constructor and destroyer are enough.
+	pointer address(reference x) const {
+		return (pointer)&x;
+	}
+
+	const_pointer address(const_reference x) const {
+		return (const_pointer)&x;
+	}
+
+	// default constructor and destructor are enough.
 	// allocator() __MINI_NOTHROW {}
 	// allocator(const allocator& alloc) __MINI_NOTHROW {}
 	// ~allocator()
 };
 
-}
+}// namespace ministl
 
 #endif /* __MINI_STL_ALLOCATOR_H */

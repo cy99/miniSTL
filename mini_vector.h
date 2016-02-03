@@ -39,6 +39,11 @@ public:
 	// typedef reverse_iterator<const_iterator> const_reverse_iterator;
 
 
+// Aux functions
+private:
+	_reallocate(size_type n, size) {
+		
+	}
 
 // Member functions
 public:
@@ -91,10 +96,26 @@ public:
 // Capacity :
 	size_type size() const { return size_type(end() - begin()); }
 	size_type max_size() const { return size_type(-1) - sizeof(value_type); }
-	// resize	// TODO();
+	void resize (size_type n, value_type val = value_type()) {
+		if (n < size()) {
+			// TODO();
+		}
+	}
 	size_type capacity() const { return size_type(end_of_storage - start); }
 	bool empty() const { return finish == start; }
-	// reserve // TODO();
+	void reserve (size_type n) {
+		if (n > capacity()) {
+			allocator_type alloc = allocator_type();
+			iterator tmp = alloc.allocate(n);
+			size_type tmp_size = size();
+			uninitialized_copy(start, finish, tmp);
+			alloc.destroy(start, size());
+			alloc.deallocate(start, end_of_storage - start);
+			start = tmp;
+			finish = start + tmp_size;
+			end_of_storage = start + n;
+		}
+	}
 
 // Element access :
 	reference operator[](size_type n) { return *(begin() + n); }
@@ -115,6 +136,9 @@ public:
 	reference back() const { return *(end() - 1); }
 
 // Modifiers :
+	iterator insert (iterator position, const value_type& val) {
+		// TODO();
+	}
 #if 0
 	assign
 	push_back
@@ -134,8 +158,10 @@ protected:
 	pointer finish;
 	pointer end_of_storage;
 
+
+
 };
 
-}
+}// namespace ministl
 
 #endif /* __MINI_STL_VECTOR_H */
