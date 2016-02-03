@@ -11,29 +11,26 @@
 
 #include "mini_type_traits.h"	// for __type_traits<T>
 #include "mini_iterator.h"		// for value_type<T>
-#include "mini_construct.h"		// for construct() and destroy()
 
 
 namespace ministl {
 // Aux functions
 
-template <typename ForwardIterator>
+template <typename ForwardIterator, typename T>
 inline void _Destroy_aux_aux(ForwardIterator first, ForwardIterator last,
-	__true_type) { /* do nothing */ }
+	__true_type, T*) { /* do nothing */ }
 
-template <typename ForwardIterator>
+template <typename ForwardIterator, typename T>
 inline void _Destroy_aux_aux(ForwardIterator first, ForwardIterator last,
-	__false_type) {
-	for (; first != last; ++first) {
-		destroy(&*first);
-	}
+	__false_type, T*) {
+	while (first != last) { (first++)->~T(); }
 }
 
 
 template <typename ForwardIterator, typename T>
 inline void _Destroy_aux(ForwardIterator first, ForwardIterator last, T*) {
 	typedef typename __type_traits<T>::has_trivial_destructor trivial_destructor;
-	_Destroy_aux_aux(first, last, trivial_destructor());
+	_Destroy_aux_aux(first, last, trivial_destructor(), (T*)0);
 }
 
 
@@ -55,7 +52,7 @@ inline void _Destroy(T* buffer) {
 
 template <typename ForwardIterator>
 inline void _Destroy(ForwardIterator first, ForwardIterator last) {
-	_Destory_aux(first, last, value_type(first));
+	_Destroy_aux(first, last, value_type(first));
 }
 
 

@@ -10,7 +10,10 @@
 
 namespace ministl {
 
-
+template <typename T>
+inline T* value_type(const T*) {
+	return (T*)0;
+}
 
 }// namespace ministl
 

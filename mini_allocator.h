@@ -5,11 +5,14 @@
  */
 
 #ifndef __MINI_STL_ALLOCATOR_H
-#define __MINI_STL_ALLOCATOR_H
+#define __MINI_STL_ALLOCATOR_H	// Done.
 
-#include <cstddef>	// for ptrdiff_t and size_t
-#include <new>		// for operator new
-#include <climits>	// for UINT_MAX
+// Default Allocator
+
+#include <cstddef>		// for ptrdiff_t and size_t
+#include <new>			// for operator new, operator delete and bad_alloc
+#include <climits>		// for UINT_MAX
+#include "mini_construct.h"		// for construct() and destroy()
 
 #ifndef __MINI_NOTHROW
 #define __MINI_NOTHROW noexcept
@@ -20,29 +23,27 @@ namespace ministl {
 // Aux functions
 
 template <typename T>
-T* _allocate(ptrdiff_t size, T*) {
+inline static T* _allocate(ptrdiff_t size, T*) {
 	T* tmp = (T*)(::operator new((size_t)(size * sizeof(T))));
-	if (tmp == NULL) {
-		throw "_allocate : out of memory";
-	}
+	if (tmp == NULL) { throw std::bad_alloc(); } // "_allocate : out of memory"
 	return tmp;
 }
 
 template <typename T>
-void _deallocate(T* p) {
-	::operator delete(p);
+inline static void _deallocate(T* p) {
+	::operator delete(p);	// original implementation
 }
 
 template <typename T>
-void _construct(T* p, const T& val) {
-	new(p) T(val);
+inline static void _construct(T* p, const T& val) {
+	construct(p, val);
+	// new(p) T(val);	// original implementation
 }
 
 template <typename T>
-void _destroy(T* p, size_t n) {
-	for (size_t i = 0; i < n; i++) {
-		(p + i)->~T();
-	}
+inline static void _destroy(T* p, size_t n) {
+	destroy(p, p + n);
+	// while (n--) { (p + i)->~T(); }	// original implementation
 }
 
 
@@ -82,7 +83,7 @@ public:
 	}
 
 	void deallocate(pointer p, size_type n) {
-		_deallocate(p);
+		_deallocate(p);		// what the use of argument 'n' is ?
 	}
 
 	pointer address(reference x) const {
