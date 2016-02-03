@@ -33,6 +33,12 @@ inline OutputIterator copy(InputIterator first, InputIterator last, OutputIterat
 	// TODO(); // New Effective Implementation
 }
 
+template <typename BidirectionalIter1, typename BidirectionalIter2>
+BidirectionalIter2 copy_backward(BidirectionalIter1 first,
+						BidirectionalIter1 last, BidirectionalIter2 dest) {
+	while (last != first) { *(--dest) = *(--last); }	// dest is a tail.
+	return dest;
+}
 
 
 }// namespace ministl

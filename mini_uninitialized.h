@@ -17,7 +17,7 @@ namespace ministl {
 
 // Aux functions for uninitialized_fill_n
 template <typename ForwardIter, typename Size, typename T>
-inline ForwardIter __uninitialized_fill_n_aux(ForwardIter first, 
+inline ForwardIter __uninitialized_fill_n_aux(ForwardIter first,
 	Size n, const T& val, __true_type) {
 	return fill_n(first, n, val);
 }
@@ -30,7 +30,7 @@ inline ForwardIter __uninitialized_fill_n_aux(ForwardIter first,
 }
 
 template <typename ForwardIter, typename Size, typename T, typename IterType>
-inline ForwardIter __uninitialized_fill_n(ForwardIter first, 
+inline ForwardIter __uninitialized_fill_n(ForwardIter first,
 	Size n, const T& val, IterType*) {
 	typedef typename __type_traits<IterType>::is_POD_type is_POD;
 	return __uninitialized_fill_n_aux(first, n, val, is_POD());
@@ -40,13 +40,6 @@ inline ForwardIter __uninitialized_fill_n(ForwardIter first,
 
 
 // Aux functions for uninitialized_fill
-template <typename ForwardIter, typename T, typename IterType>
-inline void __uninitialized_fill(ForwardIter first,
-	ForwardIter last, const T& val, IterType*) {
-	typedef typename __type_traits<IterType>::is_POD_type is_POD;
-	return __uninitialized_fill_aux(first, last, val, is_POD());
-}
-
 template <typename ForwardIter, typename T>
 inline void __uninitialized_fill_aux(ForwardIter first,
 	ForwardIter last, const T& val, __true_type) {
@@ -59,25 +52,30 @@ inline void __uninitialized_fill_aux(ForwardIter first,
 	while (first != last) { construct(&*(first++), val); }
 }
 
-
+template <typename ForwardIter, typename T, typename IterType>
+inline void __uninitialized_fill(ForwardIter first,
+	ForwardIter last, const T& val, IterType*) {
+	typedef typename __type_traits<IterType>::is_POD_type is_POD;
+	return __uninitialized_fill_aux(first, last, val, is_POD());
+}
 
 
 // Aux functions for uninitialized_copy
 template <typename InputIter, typename ForwardIter>
-inline ForwardIter __uninitialized_copy_aux(InputIter first, 
+inline ForwardIter __uninitialized_copy_aux(InputIter first,
 	InputIter last, ForwardIter dest, __true_type) {
 	return copy(first, last, dest);
 }
 
 template <typename InputIter, typename ForwardIter>
-inline ForwardIter __uninitialized_copy_aux(InputIter first, 
+inline ForwardIter __uninitialized_copy_aux(InputIter first,
 	InputIter last, ForwardIter dest, __false_type) {
 	while (first != last) { construct(&*(dest++), *(first++)); }
 	return dest;
 }
 
 template <typename InputIter, typename ForwardIter, typename IterType>
-inline ForwardIter __uninitialized_copy(InputIter first, 
+inline ForwardIter __uninitialized_copy(InputIter first,
 	InputIter last, ForwardIter dest, IterType*) {
 	typedef typename __type_traits<IterType>::is_POD_type is_POD;
 	return __uninitialized_copy_aux(first, last, dest, is_POD());
@@ -94,7 +92,7 @@ inline ForwardIter __uninitialized_copy(InputIter first,
 // all functions below should abide by "commit or rollback"
 
 template <typename ForwardIter, typename Size, typename T>
-inline ForwardIter uninitialized_fill_n(ForwardIter first, 
+inline ForwardIter uninitialized_fill_n(ForwardIter first,
 	Size n, const T& val) {
 	return __uninitialized_fill_n(first, n, val, value_type(first));
 }
@@ -107,7 +105,7 @@ inline void uninitialized_fill(ForwardIter first,
 
 
 template <typename InputIter, typename ForwardIter>
-inline ForwardIter uninitialized_copy(InputIter first, 
+inline ForwardIter uninitialized_copy(InputIter first,
 	InputIter last, ForwardIter dest) {
 	return __uninitialized_copy(first, last, dest, value_type(first));
 }
