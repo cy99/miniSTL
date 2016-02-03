@@ -39,12 +39,6 @@ public:
 	// typedef reverse_iterator<const_iterator> const_reverse_iterator;
 
 
-// Aux functions
-private:
-	_reallocate(size_type n, size) {
-		
-	}
-
 // Member functions
 public:
 

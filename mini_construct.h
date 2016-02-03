@@ -45,7 +45,7 @@ inline void _Construct(T* buffer) {
 
 template <typename T1, typename T2>
 inline void _Construct(T1* buffer, const T2& value) {
-	new((void*)buffer) T(value);
+	new((void*)buffer) T1(value);
 }
 
 template <typename T>

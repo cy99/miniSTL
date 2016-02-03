@@ -7,12 +7,16 @@
 #ifndef __MINI_STL_MEMORY_H
 #define __MINI_STL_MEMORY_H
 
-#include <memory>
+#include "mini_construct.h"
+#include "mini_uninitialized.h"
  
 namespace ministl {
 
+#if 0
+#include <memory>
 using std::uninitialized_fill_n;
 using std::uninitialized_copy;
+#endif
 
 #if 0
 /* use the <memory> for the time being */

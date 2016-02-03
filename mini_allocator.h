@@ -70,7 +70,7 @@ public:
 	}
 
 	void destroy(pointer p, size_type n) {
-		_destroy(start, n);
+		_destroy(p, n);
 	}
 
 	size_type max_size() const __MINI_NOTHROW {
