@@ -5,7 +5,7 @@
  */
 
 #ifndef __MINI_STL_VECTOR_H
-#define __MINI_STL_VECTOR_H
+#define __MINI_STL_VECTOR_H		// Done.
 
 #include <cstddef>			// for ptrdiff_t and size_t
 #include <stdexcept>		// for std::out_of_range
@@ -18,7 +18,10 @@
 #define __MINI_NOTHROW noexcept
 #endif
 
-#define EXPAND_MULTIPLE 2	// Perhaps 1.5 is more effective.
+#define EXPAND_MULTIPLE 1.5	// Perhaps 1.5 is more effective.
+#ifndef ROUNDUP
+#define ROUNDUP(f) (size_t(f + 0.5))
+#endif
 
 
 namespace ministl {
@@ -142,8 +145,9 @@ public:
 			finish = start + n;
 		} else if (n > capacity()) {
 			reserve(n);
-			uninitialized_fill(finish, end_of_storage, val);
-			finish = end_of_storage;
+			finish = uninitialized_fill_n(finish, end_of_storage, val);
+		} else {
+			finish = uninitialized_fill_n(finish, n - size(), val);
 		}
 	}
 
@@ -158,13 +162,13 @@ public:
 		if (n >= size()) {
 			throw std::out_of_range("Out_of_range Error in vector::at().");
 		}
-		return this[n];
+		return (*this)[n];
 	}
 	const_reference at(size_type n) const {
 		if (n >= size()) {
 			throw std::out_of_range("Out_of_range Error in vector::at().");
 		}
-		return this[n];
+		return (*this)[n];
 	}
 	inline reference front() const { return *begin(); }
 	inline reference back() const { return *(end() - 1); }
@@ -225,7 +229,7 @@ public:
 
 		if (finish == end_of_storage) {
 
-			size_type expand_size = EXPAND_MULTIPLE * capacity();
+			size_type expand_size = ROUNDUP(EXPAND_MULTIPLE * capacity());
 			if (expand_size == 0) { expand_size = 1; }
 			iterator tmp_start = alloc.allocate(expand_size);
 
@@ -288,6 +292,21 @@ public:
 		return first;
 	}
 
+	void clear() {
+		destroy(start, finish);
+		finish = start;
+	}
+
+
+	template <typename U> static void __swap(U& a, U& b) {
+		U tmp(a); a = b; b = tmp;
+	}
+
+	void swap(vector& x) {
+		__swap(start, x.start);
+		__swap(finish, x.finish);
+		__swap(end_of_storage, x.end_of_storage);
+	}
 
 // Allocator :
 	inline allocator_type get_allocator() const { return alloc; }

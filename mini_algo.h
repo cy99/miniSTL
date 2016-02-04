@@ -40,6 +40,9 @@ BidirectionalIter2 copy_backward(BidirectionalIter1 first,
 	return dest;
 }
 
+template <typename T> void swap(T& a, T& b) {
+	T tmp(a); a = b; b = tmp;
+}
 
 }// namespace ministl
 
