@@ -42,7 +42,7 @@ inline static void _construct(T* p, const T& val) {
 
 template <typename T>
 inline static void _destroy(T* p, size_t n) {
-	destroy(p, p + n);
+    if (n != 0) destroy(p, p + n);
 	// while (n--) { (p + i)->~T(); }	// original implementation
 }
 

@@ -9,6 +9,7 @@
 
 #include <cstddef>			// for ptrdiff_t and size_t
 #include <stdexcept>		// for std::out_of_range
+
 #include "mini_allocator.h"	// for default allocator
 #include "mini_memory.h"	// for construct() and destroy()
 #include "mini_algo.h"		// for fill() and fill_n()
@@ -39,8 +40,8 @@ public:
 	typedef Alloc allocator_type;
 	typedef value_type* iterator;
 	typedef const value_type* const_iterator;
-	// typedef reverse_iterator<iterator> reverse_iterator;
-	// typedef reverse_iterator<const_iterator> const_reverse_iterator;
+	typedef reverse_iterator_base<iterator> reverse_iterator;
+	typedef reverse_iterator_base<const_iterator> const_reverse_iterator;
 
 
 
@@ -49,7 +50,7 @@ public:
 
 // Base :
 	vector(const allocator_type& _allocator = allocator_type()) :
-	    	start(NULL), finish(NULL), end_of_storage(NULL), alloc(_allocator) {}
+	    	alloc(_allocator), start(NULL), finish(NULL), end_of_storage(NULL) {}
 
 	vector(size_type n, const value_type& val = value_type(),
 						const allocator_type& _allocator = allocator_type()) {
@@ -82,7 +83,7 @@ public:
 		end_of_storage = finish;
 	}
 
-	~vector() {		
+	~vector() {
 		alloc.destroy(start, size());
 		alloc.deallocate(start, capacity());
 	}
@@ -91,7 +92,7 @@ public:
 		if (&x == this) return *this;
 
 		size_type x_size = x.size();
-		if (x_size > capacity()) {			
+		if (x_size > capacity()) {
 			iterator tmp = alloc.allocate(x_size);
 			alloc.destroy(start, size());
 			alloc.deallocate(start, capacity());
@@ -109,12 +110,12 @@ public:
 // Iterators :
 	inline iterator begin() const { return start; }
 	inline iterator end() const { return finish; }
-	//reverse_iterator rbegin() { return reverse_iterator(end()); }
-	//reverse_iterator rend() { return reverse_iterator(begin()); }
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	reverse_iterator rend() { return reverse_iterator(begin()); }
 	inline const_iterator cbegin() const { return start; }
 	inline const_iterator cend() const { return finish; }
-	//reverse_iterator crbegin() const { return reverse_iterator(cend()); }
-	//reverse_iterator crend() const { return reverse_iterator(cbegin()); }
+	reverse_iterator crbegin() const { return reverse_iterator(cend()); }
+	reverse_iterator crend() const { return reverse_iterator(cbegin()); }
 
 
 // Capacity :
@@ -184,7 +185,7 @@ public:
 	void assign(size_type n, const value_type& val) {
 		if (n > capacity()) {
 			destroy(start, finish);
-			
+
 			alloc.deallocate(start, capacity);
 			start = alloc.allocate(n);
 
@@ -198,7 +199,7 @@ public:
 
 	void insert (iterator position, size_type n, const value_type& val) {
 		size_type available_size = end_of_storage - finish;
-		if (n > available_size) {			
+		if (n > available_size) {
 
 			size_type expand_size = size() + n;
 			iterator tmp_start = alloc.allocate(expand_size);
@@ -221,7 +222,8 @@ public:
 	}
 
 	iterator insert(iterator position, const value_type& val) {
-		if (finish == end_of_storage) {			
+
+		if (finish == end_of_storage) {
 
 			size_type expand_size = EXPAND_MULTIPLE * capacity();
 			if (expand_size == 0) { expand_size = 1; }
@@ -239,8 +241,12 @@ public:
 			end_of_storage = start + expand_size;
 
 			return tmp_position;
-		} else {
-			construct(finish, *(finish - 1));
+		} else if (position == finish) {
+            construct(finish, val);
+            ++finish;
+            return position;
+        } else {
+			construct(finish, back());
 			++finish;
 			copy_backward(position, finish - 2, finish - 1);
 			*position = val;
@@ -250,7 +256,6 @@ public:
 
 	template <typename InputIterator>
     void insert(iterator position, InputIterator first, InputIterator last) {
-		size_type available_size = end_of_storage - finish;
 		while (first != last) {
 			position = insert(position, *(first++));
 			++position;
@@ -291,9 +296,9 @@ public:
 
 protected:
 	allocator_type alloc;
-	pointer start;
-	pointer finish;
-	pointer end_of_storage;
+	iterator start;
+	iterator finish;
+	iterator end_of_storage;
 
 
 

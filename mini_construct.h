@@ -23,7 +23,9 @@ inline void _Destroy_aux_aux(ForwardIterator first, ForwardIterator last,
 template <typename ForwardIterator, typename T>
 inline void _Destroy_aux_aux(ForwardIterator first, ForwardIterator last,
 	__false_type, T*) {
-	while (first != last) { (first++)->~T(); }
+	while (first != last) {
+        destroy(&*(first++));
+	}//{ first->~T(); ++first; }
 }
 
 
