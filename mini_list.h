@@ -5,9 +5,12 @@
  */
 
 #ifndef __MINI_STL_LIST_H
-#define __MINI_STL_LIST_H		// Done.
+#define __MINI_STL_LIST_H		// Working...
 
 #include <cstddef>
+#include "mini_allocator.h"
+#include "mini_memory.h"
+#include "mini_iterator.h"
 
 
 
@@ -24,73 +27,9 @@ struct __list_node {
 };
 
 
-template <typename T>
-class __list_iterator {
-public:
-	typedef bidirectional_iterator_tag iterator_category;
-	
-	typedef T value_type;
-	typedef T* pointer;
-	typedef T& reference;
-	typedef size_t size_type;
-	typedef ptrdiff_t difference_type;
-	
-	typedef __list_node<T> node_type;
-	typedef __list_iterator<T> self;
-
-// Construct
-public:
-	__list_iterator(node_type* pt) : node(pt) {}
-
-// Member function
-public:
-	
-	inline reference operator*() const {
-		return node->data;
-	}
-
-	inline pointer operator->() const {
-		return &(operator*());
-	}
-
-	inline bool operator==(const self& x) const {
-		return x.node == node;
-	}
-
-	inline bool operator!=(const self& x) const {
-		return !(*this == x);
-	}
-
-	inline self& operator++() {
-		node = node->next;
-		return *this;
-	}
-
-	inline self& operator--() {
-		node = node->prev;
-		return *this;
-	}
-
-	inline self operator++(int) {
-		self tmp = *this;
-		tmp.node = tmp.node->next;
-		return tmp;
-	}
-
-	inline self operator--(int) {
-		self tmp = *this;
-		tmp.node = tmp.node->prev;
-		return tmp;
-	}
-
-
-protected:
-	node_type* node;
-};
-
-
 template <typename T, typename Alloc = allocator<__list_node<T> > >
 class list {
+
 public:
 	typedef T value_type;
 	typedef T* pointer;
@@ -101,10 +40,79 @@ public:
 	typedef ptrdiff_t difference_type;
 
 	typedef __list_node<T> node_type;
+
+
+// List Iterator Class
+protected:
+	class __list_iterator {
+	public:
+		typedef bidirectional_iterator_tag iterator_category;
+
+		typedef T value_type;
+		typedef T* pointer;
+		typedef T& reference;
+		typedef size_t size_type;
+		typedef ptrdiff_t difference_type;
+
+		typedef __list_iterator self;
+
+	// Construct
+	public:
+		__list_iterator(node_type* pt = NULL) : node(pt) {}
+
+	// Member function
+	public:
+
+		inline reference operator*() const {
+			return node->data;
+		}
+
+		inline pointer operator->() const {
+			return &(operator*());
+		}
+
+		inline bool operator==(const self& x) const {
+			return x.node == node;
+		}
+
+		inline bool operator!=(const self& x) const {
+			return !(*this == x);
+		}
+
+		inline self& operator++() {
+			node = node->next;
+			return *this;
+		}
+
+		inline self& operator--() {
+			node = node->prev;
+			return *this;
+		}
+
+		inline self operator++(int) {
+			self tmp = *this;
+			node = node->next;
+			return tmp;
+		}
+
+		inline self operator--(int) {
+			self tmp = *this;
+			node = node->prev;
+			return tmp;
+		}
+
+	public:
+		node_type* node;
+	};
+
+
+
+
+public:
 	typedef Alloc allocator_type;
 
-	typedef __list_iterator<T> iterator;
-	typedef __list_iterator<const T> const_iterator;
+	typedef __list_iterator iterator;
+	typedef const __list_iterator const_iterator;
 
 	typedef reverse_iterator_base<iterator> reverse_iterator;
 	typedef reverse_iterator_base<const_iterator> const_reverse_iterator;
@@ -112,34 +120,63 @@ public:
 
 
 // Aux function
-public:
-	inline node_type __create_node(const_reference val) {
+protected:
+	inline node_type* __create_node(const_reference val = value_type()) {
 		node_type* tmp = alloc.allocate(1);
 		construct(tmp, val);
 		return tmp;
 	}
 
+	// create a node which is the head node as well as the tail node meanwhile.
+	inline iterator __initialized_head() {
+		node_type* tmp = __create_node();
+		tmp->prev = tmp->next = tmp;
+		return iterator(tmp);
+	}
 
+	inline void __destroy_node(node_type* x) const {
+		destroy(x);
+	}
 
+	template <typename U> static void __swap(U& a, U& b) {
+		U tmp(a); a = b; b = tmp;
+	}
+
+// Member Functions
 public:
 	allocator_type get_allocator() const { return alloc; }
 
 	list(const allocator_type& _alloc = allocator_type())
-					: head(NULL), alloc(_alloc) {}
+					: head(__initialized_head()), alloc(_alloc) {}
 
 	list(size_type n, const value_type& val = value_type(),
 					const allocator_type& _alloc = allocator_type())
-					: head(NULL), alloc(_alloc) {
+					: head(__initialized_head()), alloc(_alloc) {
 		insert(head, n, val);
 	}
 
 	template <typename InputIterator>
 	list(InputIterator first, InputIterator last,
-			const allocator_type& _alloc = allocator_type()) : alloc(_alloc) {
+					const allocator_type& _alloc = allocator_type())
+					: head(__initialized_head()), alloc(_alloc) {
 		insert(first, last, head);
 	}
 
-	list(const list& x) : head(x.head), alloc(x.alloc) {}
+	list(const list& x) : head(__initialized_head()), alloc(x.alloc) {
+		insert(x.begin(), x.end(), head);
+	}
+
+	~list() {
+		clear();
+		__destroy_node(head.node);
+	}
+
+	list<T>& operator=(const list<T>& x) {
+		alloc = x.alloc;
+		assign(x.begin(), x.end());
+		return *this;
+	}
+
 
 
 // Iterators and Capacity
@@ -167,34 +204,37 @@ public:
 	inline reference front() const { return *begin(); }
 	inline reference back() const { return *end(); }
 
-	void assign() {
-		// TODO();
+
+	void assign(size_type n, const value_type& val) {
+		clear();
+		insert(head, n, val);
 	}
 
-	void push_front() {
-		// TODO();
+	template <typename InputIterator>
+	void assign(InputIterator first, InputIterator last) {
+		clear();
+		insert(first, last, head);
 	}
 
-	void pop_front() {
-		// TODO();
-	}
+	void push_front(const value_type& val) { insert(begin(), val); }
 
-	void push_back() {
-		// TODO();
-	}
+	void pop_front() { erase(begin()); }
 
-	void pop_back() {
-		// TODO();
-	}
+	void push_back(const value_type& val) { insert(end(), val); }
+
+	void pop_back() { iterator tmp = end(); erase(--tmp); }
 
 	iterator insert(iterator position, const_reference val) {
 		node_type* tmp = __create_node(val);
+
 		node_type* current = position.node;
 		current->prev->next = tmp;
 		tmp->prev = current->prev;
 		tmp->next = current;
 		current->prev = tmp;
-		return iterator(tmp);
+		iterator ret = iterator(tmp);
+		if (position == head) { head = ret; }
+		return ret;
 	}
 
 	void insert(iterator position, size_type n, const_reference val) {
@@ -206,20 +246,38 @@ public:
 		while (first != last) { insert(position, *(first++)); }
 	}
 
-	void erase() {
-		// TODO();
+	iterator erase(iterator position) {
+		node_type* current = position.node;
+		current->prev->next = current->next;
+		current->next->prev = current->prev;
+		node_type* after = current->next;
+		__destroy_node(current);
+		return after;
 	}
 
-	void swap() {
-		// TODO();
+	iterator erase(iterator first, iterator last) {
+		while (first != last) { first = erase(first); }
+		return first;
 	}
 
-	void resize() {
-		// TODO();
+	void swap(list& x) {
+		__swap(head, x);
+		__swap(alloc, x.alloc);
+	}
+
+	void resize(size_type n, value_type val = value_type()) {
+		size_type _len = size();
+		if (_len >= n) {
+			iterator tmp = begin();
+			while (n--) { ++tmp; }
+			erase(tmp, end());
+		} else {
+			insert(end(), n - _len, val);
+		}
 	}
 
 	void clear() {
-		// TODO();
+		erase(begin(), end());
 	}
 
 
@@ -228,12 +286,22 @@ public:
 		// TODO();
 	}
 
-	void remove() {
-		// TODO();
+	void remove(const value_type& val) {
+		remove_if(
+			[ &val ] (const value_type& _val) -> bool { return _val == val; }
+		);
 	}
 
-	void remove_if() {
-		// TODO();
+	template <typename Predicate>
+	void remove_if(Predicate pred) {
+		iterator cur = begin(), last = end();
+		while (cur != last) {
+			if (pred(*cur)) {
+				cur = erase(cur);
+			} else {
+				++cur;
+			}
+		}
 	}
 
 	void unique() {
@@ -249,7 +317,16 @@ public:
 	}
 
 	void reverse() {
-		// TODO();
+		node_type *p1 = head.node;
+		node_type *p2 = p1->prev;
+		node_type *tmp_end = p2;
+		while (p1 != tmp_end) {
+			p2 = p1;
+			p1 = p1->next;
+			__swap(p2->next, p2->prev);
+		}
+		__swap(p1->next, p1->prev);
+		head.node = p1->next;
 	}
 
 

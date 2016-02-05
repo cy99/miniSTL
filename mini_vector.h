@@ -26,6 +26,7 @@
 
 namespace ministl {
 
+
 template <typename T, typename Alloc = allocator<T> >
 class vector {
 
