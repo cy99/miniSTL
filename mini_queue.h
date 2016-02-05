@@ -17,8 +17,13 @@ template <typename T, typename Container = list<T> >
 class queue {
 public:
 	typedef T value_type;
-	typedef Container container_type;
+	typedef T* pointer;
+	typedef T& reference;
+	typedef const T* const_pointer;
+	typedef const T& const_reference;
 	typedef size_t size_type;
+
+	typedef Container container_type;
 	typedef queue<T, Container> self;
 
 public:
@@ -27,8 +32,10 @@ public:
 public:
 	inline bool empty() const { return c.empty(); }
 	inline size_type size() const { return c.size(); }
-	inline value_type& back() const { return c.back(); }
-	inline value_type& front() const { return c.front(); }
+	inline reference back() { return c.back(); }
+	inline const_reference back() const { return c.back(); }
+	inline reference front() { return c.front(); }
+	inline const_reference front() const { return c.front(); }
 	inline void push(const value_type& val) { c.push_back(val); }
 	inline void pop() { c.pop_front(); }
 
