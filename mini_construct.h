@@ -16,6 +16,8 @@
 namespace ministl {
 // Aux functions
 
+template <typename T> void destroy(T* p);
+
 template <typename ForwardIterator, typename T>
 inline void _Destroy_aux_aux(ForwardIterator first, ForwardIterator last,
 	__true_type, T*) { /* do nothing */ }

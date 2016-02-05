@@ -123,7 +123,7 @@ public:
 protected:
 	inline node_type* __create_node(const_reference val = value_type()) {
 		node_type* tmp = alloc.allocate(1);
-		construct(tmp, val);
+		ministl::construct(tmp, val);
 		return tmp;
 	}
 
@@ -135,7 +135,7 @@ protected:
 	}
 
 	inline void __destroy_node(node_type* x) const {
-		destroy(x);
+		ministl::destroy(x);
 	}
 
 	template <typename U> static void __swap(U& a, U& b) {

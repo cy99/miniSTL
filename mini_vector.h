@@ -60,7 +60,7 @@ public:
 						const allocator_type& _allocator = allocator_type()) {
 		alloc = _allocator;
 		start = alloc.allocate(n);
-		finish = uninitialized_fill_n(start, n, val);
+		finish = ministl::uninitialized_fill_n(start, n, val);
 		end_of_storage = finish;
 	}
 
@@ -146,9 +146,9 @@ public:
 			finish = start + n;
 		} else if (n > capacity()) {
 			reserve(n);
-			finish = uninitialized_fill_n(finish, end_of_storage, val);
+			finish = ministl::uninitialized_fill_n(finish, end_of_storage, val);
 		} else {
-			finish = uninitialized_fill_n(finish, n - size(), val);
+			finish = ministl::uninitialized_fill_n(finish, n - size(), val);
 		}
 	}
 
@@ -194,11 +194,11 @@ public:
 			alloc.deallocate(start, capacity);
 			start = alloc.allocate(n);
 
-			finish = uninitialized_fill_n(start, n, val);
+			finish = ministl::uninitialized_fill_n(start, n, val);
 			end_of_storage = finish;
 		} else if (n > size()) {
-			fill_n(start, size(), val);
-			finish = uninitialized_fill_n(finish, n - size(), val);
+			ministl::fill_n(start, size(), val);
+			finish = ministl::uninitialized_fill_n(finish, n - size(), val);
 		}
 	}
 
@@ -209,9 +209,9 @@ public:
 			size_type expand_size = size() + n;
 			iterator tmp_start = alloc.allocate(expand_size);
 
-			iterator tmp_position = uninitialized_copy(start, position, tmp_start);
-			iterator tmp_finish = uninitialized_fill_n(tmp_position, n, val);
-			tmp_finish = uninitialized_copy(position, finish, tmp_finish);
+			iterator tmp_position = ministl::uninitialized_copy(start, position, tmp_start);
+			iterator tmp_finish = ministl::uninitialized_fill_n(tmp_position, n, val);
+			tmp_finish = ministl::uninitialized_copy(position, finish, tmp_finish);
 
 			alloc.destroy(start, size());
 			alloc.deallocate(start, capacity());
@@ -220,9 +220,9 @@ public:
 			start = tmp_start;
 			end_of_storage = start + expand_size;
 		} else {
-			finish = uninitialized_copy(finish - n, finish, finish);
-			copy_backward(position, finish - n - 1, finish - n);
-			fill_n(position, n, val);
+			finish = ministl::uninitialized_copy(finish - n, finish, finish);
+			ministl::copy_backward(position, finish - n - 1, finish - n);
+			ministl::fill_n(position, n, val);
 		}
 	}
 
@@ -234,9 +234,9 @@ public:
 			if (expand_size == 0) { expand_size = 1; }
 			iterator tmp_start = alloc.allocate(expand_size);
 
-			iterator tmp_position = uninitialized_copy(start, position, tmp_start);
+			iterator tmp_position = ministl::uninitialized_copy(start, position, tmp_start);
 			alloc.construct(tmp_position, val);
-			iterator tmp_finish = uninitialized_copy(position, finish, tmp_position + 1);
+			iterator tmp_finish = ministl::uninitialized_copy(position, finish, tmp_position + 1);
 
 			alloc.destroy(start, size());
 			alloc.deallocate(start, capacity());
@@ -247,13 +247,13 @@ public:
 
 			return tmp_position;
 		} else if (position == finish) {
-            construct(finish, val);
+            ministl::construct(finish, val);
             ++finish;
             return position;
         } else {
-			construct(finish, back());
+			ministl::construct(finish, back());
 			++finish;
-			copy_backward(position, finish - 2, finish - 1);
+			ministl::copy_backward(position, finish - 2, finish - 1);
 			*position = val;
 			return position;
 		}
@@ -276,25 +276,25 @@ public:
 		}
 	}
 
-	void pop_back() { destroy(--finish); }
+	void pop_back() { ministl::destroy(--finish); }
 
 	iterator erase(iterator position) {
-		copy(position + 1, finish, position);
+		ministl::copy(position + 1, finish, position);
 		--finish;
-		destroy(finish);
+		ministl::destroy(finish);
 		return position;
 	}
 
 	iterator erase(iterator first, iterator last) {
 		size_type n = last - first;
-		copy(last, finish, first);
+		ministl::copy(last, finish, first);
 		finish -= n;
-		destroy(finish, finish + n);
+		ministl::destroy(finish, finish + n);
 		return first;
 	}
 
 	void clear() {
-		destroy(start, finish);
+		ministl::destroy(start, finish);
 		finish = start;
 	}
 
