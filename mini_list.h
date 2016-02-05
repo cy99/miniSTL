@@ -27,7 +27,7 @@ struct __list_node {
 };
 
 
-template <typename T, typename Alloc = allocator<__list_node<T> > >
+template <typename T, typename Alloc = allocator<T> >
 class list {
 
 public:
@@ -40,6 +40,7 @@ public:
 	typedef ptrdiff_t difference_type;
 
 	typedef __list_node<T> node_type;
+	typedef typename Alloc::template rebind<node_type>::other allocator_type;
 
 
 // List Iterator Class
@@ -109,7 +110,6 @@ protected:
 
 
 public:
-	typedef Alloc allocator_type;
 
 	typedef __list_iterator iterator;
 	typedef const __list_iterator const_iterator;
@@ -202,7 +202,7 @@ public:
 // Element access and Modifiers
 public:
 	inline reference front() const { return *begin(); }
-	inline reference back() const { return *end(); }
+	inline reference back() const { iterator tmp = end(); return *(--tmp); }
 
 
 	void assign(size_type n, const value_type& val) {
@@ -250,9 +250,10 @@ public:
 		node_type* current = position.node;
 		current->prev->next = current->next;
 		current->next->prev = current->prev;
-		node_type* after = current->next;
+		node_type* ret = current->next;
+		if (position == head) { head = ret; }
 		__destroy_node(current);
-		return after;
+		return ret;
 	}
 
 	iterator erase(iterator first, iterator last) {
