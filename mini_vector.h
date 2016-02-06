@@ -58,7 +58,7 @@ public:
 
 	explicit vector(size_type n, const_reference val = value_type(),
 						const allocator_type& _allocator = allocator_type())
-						: start(NULL), finish(NULL), end_of_storage(NULL) {
+						: alloc(_allocator) {
 		alloc = _allocator;
 		start = alloc.allocate(n);
 		finish = ministl::uninitialized_fill_n(start, n, val);
@@ -68,13 +68,29 @@ public:
 
 
 	template <typename InputIterator>
-	vector(InputIterator first, InputIterator last,
+    vector(InputIterator first, InputIterator last,
 						const allocator_type& _allocator = allocator_type())
-						: start(NULL), finish(NULL), end_of_storage(NULL) {
+						: alloc(_allocator) {
+		typedef typename ministl::__Is_integer<InputIterator>::_Integral is_integral;
+		vector_template_aux(first, last, is_integral());
+	}
 
-		alloc = _allocator;
+
+// ------------- If typename == Integer -------------
+// (i.e. vector<int> sz(9, 20); -> it must be vector<int> sz((size_t)9, 20);
+	template <typename _Integer>
+	void vector_template_aux(_Integer n, _Integer val, __true_type) {
+		start = alloc.allocate(n);
+		finish = ministl::uninitialized_fill_n(start, n, val);
+		end_of_storage = finish;
+	}
+
+	template <typename InputIterator>
+	void vector_template_aux(InputIterator first, InputIterator last, __false_type) {
 		while (first != last) { push_back(*(first++)); }
 	}
+// ------------- End If -------------
+
 
 	vector(const vector& x) {
 		alloc = x.get_allocator();
