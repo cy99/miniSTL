@@ -14,9 +14,9 @@
 #include <climits>		// for UINT_MAX
 #include "mini_construct.h"		// for construct() and destroy()
 
-#ifndef __MINI_NOTHROW
-#define __MINI_NOTHROW noexcept
-#endif
+
+// #define __MINI_NOTHROW noexcept(true)
+
 
 namespace ministl {
 
