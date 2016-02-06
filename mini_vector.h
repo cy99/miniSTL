@@ -53,11 +53,12 @@ public:
 public:
 
 // Base :
-	vector(const allocator_type& _allocator = allocator_type()) :
-	    	alloc(_allocator), start(NULL), finish(NULL), end_of_storage(NULL) {}
+	explicit vector(const allocator_type& _allocator = allocator_type())
+	: alloc(_allocator), start(NULL), finish(NULL), end_of_storage(NULL) {}
 
-	vector(size_type n, const value_type& val = value_type(),
-						const allocator_type& _allocator = allocator_type()) {
+	explicit vector(size_type n, const_reference val = value_type(),
+						const allocator_type& _allocator = allocator_type())
+						: start(NULL), finish(NULL), end_of_storage(NULL) {
 		alloc = _allocator;
 		start = alloc.allocate(n);
 		finish = ministl::uninitialized_fill_n(start, n, val);
@@ -68,16 +69,11 @@ public:
 
 	template <typename InputIterator>
 	vector(InputIterator first, InputIterator last,
-						const allocator_type& _allocator = allocator_type()) :
-						start(NULL), finish(NULL), end_of_storage(NULL) {
+						const allocator_type& _allocator = allocator_type())
+						: start(NULL), finish(NULL), end_of_storage(NULL) {
 
 		alloc = _allocator;
 		while (first != last) { push_back(*(first++)); }
-		#if 0
-		start = alloc.allocate(last - first);
-		finish = uninitialized_copy(first, last, start);
-		end_of_storage = finish;
-		#endif // only random iterator
 	}
 
 	vector(const vector& x) {
@@ -191,7 +187,7 @@ public:
 		if (n > capacity()) {
 			destroy(start, finish);
 
-			alloc.deallocate(start, capacity);
+			alloc.deallocate(start, capacity());
 			start = alloc.allocate(n);
 
 			finish = ministl::uninitialized_fill_n(start, n, val);

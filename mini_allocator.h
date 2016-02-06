@@ -74,7 +74,7 @@ public:
 		_destroy(p, n);
 	}
 
-	size_type max_size() const __MINI_NOTHROW {
+	size_type max_size() const {
 		return size_type(-1) / sizeof(T);
 	}
 
