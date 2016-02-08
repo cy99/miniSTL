@@ -38,7 +38,7 @@ public:
 public:
 	__tree_node(const value_type& val = value_type(),
 					link_type p = NULL, link_type l = NULL, link_type r = NULL)
-	: value(val), parent(p), left(l), right(r) {}
+	: parent(p), left(l), right(r), value(val) {}
 
 };
 
@@ -47,7 +47,7 @@ public:
 template <typename T, typename Alloc = allocator<T> >
 class __tree_base {
 public:
-	
+
 	typedef T value_type;
 	typedef __tree_node<value_type> node_type;
 	typedef node_type* link_type;
@@ -55,20 +55,21 @@ public:
 	typedef size_t size_type;
 
 protected:
-	static link_type __create_node(const value_type& val = value_type()) {
+	link_type __create_node(const value_type& val = value_type()) {
 		link_type tmp = alloc.allocate(1);
 		construct(tmp, val);
 		return tmp;
 	}
 
-	static void __destroy(link_type p) {
+	void __destroy(link_type p) {
 		destroy(&(p->value));
 		alloc.deallocate(p);
 	}
 
-	static link_type __create_root(const value_type& val = value_type()) {
+	link_type __create_root(const value_type& val = value_type()) {
 		header->parent = __create_node(val);
 		header->left = header->right = header->parent;
+		header->parent->parent = header;
 		return header->parent;
 	}
 
@@ -84,11 +85,31 @@ public:
 	}
 
 	inline size_type size() const { return node_count; }
-	inline link_type& header() const { return header; }
 	inline link_type& root() const { return header->parent; }
 
-	// inline link_type& leftmost() const { return header->left; }
-	// inline link_type& rightmost() const { return header->right; }
+	inline link_type& leftmost() const { return header->left; }
+	inline link_type& rightmost() const { return header->right; }
+
+
+// functions for debug
+	void __show_node(link_type p) const {
+		cout << p->value << " : ";
+		if (p->left) cout << "left=>" << p->left->value << "  ";
+		if (p->right) cout << "right=>" << p->right->value;
+	}
+
+	void __show(link_type root) const {
+		if (!root) return;
+		if (root->left) __show(root->left);
+		__show_node(root); cout << endl;
+		if (root->right) __show(root->right);
+	}
+
+	void show() const {
+		cout << "Show the Tree" << endl;
+		__show(root());
+		cout << "End of Show" << endl;
+	}
 
 protected:
 	link_type header;
@@ -118,12 +139,12 @@ class binary_search_tree_iterator {
 
 // Aux functions
 protected:
-	inline static link_type leftmost(link_type p) const {
+	inline link_type leftmost(link_type p) const {
 		while (p->left) { p = p->left; }
 		return p;
 	}
 
-	inline static link_type rightmost(link_type p) const {
+	inline link_type rightmost(link_type p) const {
 		while (p->right) { p = p->right; }
 		return p;
 	}
@@ -132,9 +153,11 @@ protected:
 // Member functions
 public:
 
+	binary_search_tree_iterator(link_type p = NULL) : node(p) {}
+
 	inline const_reference operator*() const { return node->value; }
 	inline const_pointer operator->() const { return &(operator*()); }
-	
+
 
 	// 先用中文写吧，到时候再删掉
 	// 下一个node是其右子树的leftmost的点
@@ -181,24 +204,7 @@ public:
 		return !(*this == rhs);
 	}
 
-// functions for debug
-	void __show_node(link_type p) const {
-		cout << p->value << " : ";
-		cout << "left=>" << p->left->value << "  ";
-		cout << "right=>" << p->right->value;
-	}
 
-	static void __show(link_type root) const {
-		if (root->left) __show(root->left);
-		__show_node(root);
-		if (root->right) __show(root->right);
-	}
-
-	void show() const {
-		cout << "Show the Tree" << endl;
-		__show(root);
-		cout << "End of Show" << endl;
-	}
 
 
 protected:
@@ -228,7 +234,7 @@ struct compare_functor {
 };
 
 // Binary Search Tree, inheriting from Tree Base.
-template <typename T, typename Compare = compare_functor, typename Alloc = allocator<T> >
+template <typename T, typename Compare = compare_functor<T>, typename Alloc = allocator<T> >
 class binary_search_tree : public __tree_base<T, Alloc> {
 public:
 
@@ -243,7 +249,7 @@ public:
 	typedef binary_search_tree_iterator<T> iterator;
 	typedef RELATION relation_type;
 	typedef WHICH_CHILD child_type;
-	
+
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 
@@ -259,20 +265,20 @@ protected:
 										__true_type) const {
 		return a == b ? EQUAL : (a < b ? LESS : GREATER);
 	}
-	
+
 	inline relation_type __comp(const value_type& a, const value_type& b) const {
-		typedef __Is_integer<value_type>::_Integral is_integral;
+		typedef typename __Is_integer<value_type>::_Integral is_integral;
 		return __comp_aux(a, b, is_integral());
 	}
 
-	iterator __insert(link_type position, const value_type& val, 
+	iterator __insert(link_type position, const value_type& val,
 		child_type _which = NODESELF) {
 		if (_which == NODESELF) {
 			position->value = val;
 			return position;
 		}
 
-		link_type tmp = __create_node(val);
+		link_type tmp = this->__create_node(val);
 
 		if (_which == LEFTCHILD) {
 			position->left = tmp;
@@ -281,39 +287,41 @@ protected:
 		}
 		tmp->parent = position;
 
-		if (__comp(val, leftmost()->value) == LESS) {
-			leftmost() = tmp;
-		} else if (__comp(val, rightmost()->value) != LESS) {
-			rightmost() = tmp;
+		if (__comp(val, this->leftmost()->value) == LESS) {
+			this->leftmost() = tmp;
+		} else if (__comp(val, this->rightmost()->value) != LESS) {
+			this->rightmost() = tmp;
 		}
 
 		return tmp;
 	}
 
+
+public:
 // Member functions
-	binary_search_tree(const Compare& _key_comp)
+	binary_search_tree(const Compare& _key_comp = Compare())
 			: __tree_base<T, Alloc>(), key_compare(_key_comp) {}
 
 
 
-	inline iterator begin() const { return header->left; }
-	inline iterator end() const { return header; }
+	inline iterator begin() const { return iterator(this->header->left); }
+	inline iterator end() const { return iterator(this->header); }
 
-	
+
 	// 无重插入
 	// 从根节点开始跑，遇到小于的就往左跑，否则往右跑
 	// 跑到没有，就取前一个
 	iterator insert_unique(const value_type& val) {
-		link_type p1 = root();
+		link_type p1 = this->root();
 		if (p1 == NULL) {
-			return __create_root();
+			return this->__create_root(val);
 		}
 
-		link_type p2 = header();
+		link_type p2 = this->header;
 
 		while (p1) {
 			p2 = p1;
-			p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;	
+			p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;
 		}
 
 		relation_type rel = __comp(val, p2->value);
@@ -326,23 +334,23 @@ protected:
 		} else {
 			_which = NODESELF;
 		}
-		
+
 		return __insert(p2, val, _which);
 	}
 
 	// 有重插入
 	// 相等时插入到等值结点的右边
 	iterator insert_euqal(const value_type& val) {
-		link_type p1 = root();
+		link_type p1 = this->root();
 		if (p1 == NULL) {
-			return __create_root();
+			return this->__create_root(val);
 		}
 
-		link_type p2 = header();
+		link_type p2 = this->header;
 
 		while (p1) {
 			p2 = p1;
-			p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;	
+			p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;
 		}
 
 		relation_type rel = __comp(val, p2->value);
