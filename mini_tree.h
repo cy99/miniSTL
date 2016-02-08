@@ -11,6 +11,7 @@
 
 #include "mini_construct.h"
 #include "mini_allocator.h"
+#include "mini_algo.h"		// for equal() and lexicographical_compare()
 
 
 #include <iostream>		// for debug
@@ -57,17 +58,19 @@ public:
 protected:
 	link_type __create_node(const value_type& val = value_type()) {
 		link_type tmp = alloc.allocate(1);
-		construct(tmp, val);
+		ministl::construct(tmp, val);
+		++node_count;
 		return tmp;
 	}
 
 	void __destroy(link_type p) {
-		destroy(&(p->value));
+		ministl::destroy(&(p->value));
 		alloc.deallocate(p);
 	}
 
 	link_type __create_root(const value_type& val = value_type()) {
 		header->parent = __create_node(val);
+		++node_count;
 		header->left = header->right = header->parent;
 		header->parent->parent = header;
 		return header->parent;
@@ -77,20 +80,24 @@ protected:
 public:
 	// initialize header
 	__tree_base(const allocator_type& _allocator = allocator_type())
-					: node_count(0), alloc(_allocator) {
+					: alloc(_allocator) {
 		header = __create_node();
 		root() = NULL;
 		leftmost() = header;
 		rightmost() = header;
+		node_count = 0;
 	}
 
 	inline size_type size() const { return node_count; }
 	inline link_type& root() const { return header->parent; }
+	inline bool empty() const { return header->parent == NULL; }
+
 
 	inline link_type& leftmost() const { return header->left; }
 	inline link_type& rightmost() const { return header->right; }
 
 
+// ----------------------------------------------------------------------
 // functions for debug
 	void __show_node(link_type p) const {
 		cout << p->value << " : ";
@@ -110,6 +117,9 @@ public:
 		__show(root());
 		cout << "End of Show" << endl;
 	}
+// ----------------------------------------------------------------------
+
+
 
 protected:
 	link_type header;
@@ -228,8 +238,8 @@ protected:
 
 template <typename T>
 struct compare_functor {
-	int operator()(const T& a, const T& b) const {
-		return a == b ? 0 : (a < b ? -1 : 1);
+	bool operator()(const T& a, const T& b) const {
+		return a < b;
 	}
 };
 
@@ -238,13 +248,14 @@ template <typename T, typename Compare = compare_functor<T>, typename Alloc = al
 class binary_search_tree : public __tree_base<T, Alloc> {
 public:
 
-	enum RELATION {LESS = -1, EQUAL = 0, GREATER = 1};
+	enum RELATION {GREATER = -1, EQUAL = 0, LESS = 1};
 	enum WHICH_CHILD {LEFTCHILD = -1, NODESELF = 0, RIGHTCHILD = 1};
 
 	typedef T value_type;
 	typedef Alloc allocator_type;
 	typedef __tree_node<T> node_type;
 	typedef node_type* link_type;
+	typedef binary_search_tree<T, Compare, Alloc> self;
 
 	typedef binary_search_tree_iterator<T> iterator;
 	typedef RELATION relation_type;
@@ -258,7 +269,7 @@ public:
 protected:
 	inline relation_type __comp_aux(const value_type& a, const value_type& b,
 										__false_type) const {
-		return (relation_type)key_compare(a, b);
+		return key_compare(a, b) ? LESS : (key_compare(b, a) ? GREATER : EQUAL);
 	}
 
 	inline relation_type __comp_aux(const value_type& a, const value_type& b,
@@ -304,9 +315,25 @@ public:
 
 
 
-	inline iterator begin() const { return iterator(this->header->left); }
+	inline iterator begin() const { return iterator(this->leftmost()); }
 	inline iterator end() const { return iterator(this->header); }
+	
+	inline bool operator==(const self& rhs) const {
+		return this->size() == rhs.size() ? 
+				ministl::equal(begin(), end(), rhs.begin()) : false;
+	}
 
+	inline bool operator<(const self& rhs) const {
+		return ministl::lexicographical_compare(
+						begin(), end(), rhs.begin(), rhs.end(), key_compare);
+	}
+
+	void clear() {
+		// TODO();
+	}
+
+
+// ------- Insert --------
 
 	// 无重插入
 	// 从根节点开始跑，遇到小于的就往左跑，否则往右跑
@@ -340,7 +367,7 @@ public:
 
 	// 有重插入
 	// 相等时插入到等值结点的右边
-	iterator insert_euqal(const value_type& val) {
+	iterator insert_equal(const value_type& val) {
 		link_type p1 = this->root();
 		if (p1 == NULL) {
 			return this->__create_root(val);
@@ -364,6 +391,17 @@ public:
 
 		return __insert(p2, val, _which);
 	}
+
+
+// ------- Erase --------
+
+	iterator erase() {
+		// TODO();
+	}
+
+
+
+
 
 protected:
 	Compare key_compare;
