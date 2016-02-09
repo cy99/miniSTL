@@ -10,6 +10,10 @@
 #include <cstddef>			// for ptrdiff_t and size_t
 #include <stdexcept>		// for std::out_of_range
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 #include "mini_allocator.h"	// for default allocator
 #include "mini_memory.h"	// for construct() and destroy()
 #include "mini_algo.h"		// for fill() and fill_n()
@@ -69,8 +73,8 @@ public:
 
 	template <typename InputIterator>
     vector(InputIterator first, InputIterator last,
-						const allocator_type& _allocator = allocator_type())
-						: alloc(_allocator) {
+            const allocator_type& _allocator = allocator_type())
+            : alloc(_allocator) ,start(NULL), finish(NULL), end_of_storage(NULL) {
 		typedef typename ministl::__Is_integer<InputIterator>::_Integral is_integral;
 		vector_template_aux(first, last, is_integral());
 	}
