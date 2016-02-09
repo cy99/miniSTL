@@ -208,6 +208,7 @@ public:
 	binary_search_tree_iterator(link_type p = NULL) : node(p) {}
 
 	binary_search_tree_iterator(const iterator& x) : node(x.node) {}
+	binary_search_tree_iterator(const const_iterator& x) : node(x.node) {}
 
 	inline reference operator*() const { return node->value; }
 	inline pointer operator->() const { return &(operator*()); }
@@ -442,7 +443,37 @@ protected:
 		if (new_root) new_root->parent = _parent;
 	}
 
+	link_type __lower_bound(const value_type& val) const {
+		link_type p1 = this->root();
+		link_type p2 = this->header;
+		while (p1) {
+			if (__comp(p1->value, val) != LESS) {
+				p2 = p1; p1 = p1->left;
+			} else {
+				p1 = p1->right;
+			}
+		}
+		return p2;
+	}
 
+	link_type __upper_bound(const value_type& val) const {
+		link_type p1 = this->root();
+		link_type p2 = this->header;
+		while (p1) {
+			if (__comp(val, p1->value) == LESS) {
+				p2 = p1; p1 = p1->left;
+			} else {
+				p1 = p1->right;
+			}
+		}
+		return p2;
+	}
+
+	ministl::pair<iterator, iterator> __equal_range(const value_type& val) const {
+		return ministl::pair<iterator, iterator>(
+			__lower_bound(val), __upper_bound(val)
+		);
+	}
 
 
 public:
@@ -487,11 +518,11 @@ public:
 		return *this;
 	}
 
-	iterator find(const value_type& val) {
+	iterator find(const value_type& val) const {
 		link_type p = this->root();
 		while (p) {
 			relation_type rel = __comp(val, p->value);
-			if (rel == EQUAL) { return p; }
+			if (rel == EQUAL) { return iterator(p); }
 			p = rel == LESS ? p->left : p->right;
 		}
 		return end();
@@ -533,6 +564,33 @@ public:
 		return sum;
 	}
 
+	iterator lower_bound(const value_type& val) {
+		return __lower_bound(val);
+	}
+
+	const_iterator lower_bound(const value_type& val) const {
+		return __lower_bound(val);
+	}
+
+	iterator upper_bound(const value_type& val) {
+		return __upper_bound(val);
+	}
+
+	const_iterator upper_bound(const value_type& val) const {
+		return __upper_bound(val);
+	}
+
+	ministl::pair<iterator, iterator> equal_range(const value_type& val) {
+		return __equal_range(val);
+	}
+
+	ministl::pair<const_iterator, const_iterator> 
+						equal_range(const value_type& val) const {
+		return __equal_range(val);
+	}
+
+	allocator_type get_allocator() const { return this->alloc; }
+
 // ------- Insert --------
 
 	// 无重插入
@@ -559,23 +617,16 @@ public:
 
 		child_type _which = 
 			(__comp(val, p2->value) == LESS ? LEFTCHILD : RIGHTCHILD);
-#if 0
-		if (rel == LESS) {
-			_which = LEFTCHILD;
-		} else if (rel == GREATER) {
-			_which = RIGHTCHILD;
-		} else {
-			return ministl::pair<iterator, bool>(iterator(NULL), false);
-		}
-#endif
+
 		return ministl::pair<iterator, bool>(
 			__insert(p2, val, _which), true
 		);
 	}
 
+	
 	iterator insert_unique(iterator position, const value_type& val) {
 		// TODO();
-		return NULL;
+		return insert_unique(val).first;	// perfunctory
 	}
 
 	template <typename InputIterator>

@@ -77,9 +77,9 @@ public:
 
 	// Insert and Erase
 	ministl::pair<iterator,bool> insert(const value_type& val) {
-		ministl::pair<typename rep_type::iterator, bool>
+		ministl::pair<typename rep_type::const_iterator, bool>
 									tmp = t.insert_unique(val);
-		return ministl::pair<iterator, bool>(iterator(tmp.first), tmp.second);
+		return ministl::pair<iterator, bool>(tmp.first, tmp.second);
 	}
 
 	iterator insert(iterator position, const value_type& val) {
@@ -117,6 +117,7 @@ public:
 	pair<iterator, iterator> equal_range(const key_type& x) const {
 		return t.equal_range(x);
 	}
+	allocator_type get_allocator() const { return t.get_allocator(); }
 
 // Relational functions overload
 	inline bool operator==(const self& rhs) const {

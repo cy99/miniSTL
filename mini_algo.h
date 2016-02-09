@@ -89,6 +89,20 @@ bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
 	return first2 != last2;
 }
 
+template <typename ForwardIterator1, typename ForwardIterator2>
+void iter_swap(ForwardIterator1 a, ForwardIterator2 b) {
+	ministl::swap(*a, *b);
+}
+
+template <typename BidirectionalIterator>
+void reverse(BidirectionalIterator first, BidirectionalIterator last) {
+	while ((first != last) && (first != --last)) {
+		ministl::iter_swap(first, last);
+		++first;
+	}
+}
+
+
 }// namespace ministl
 
 #endif /* __MINI_STL_ALGO_H */
