@@ -82,7 +82,7 @@ public:
 		return _allocate(n, (pointer)0);
 	}
 
-	void deallocate(pointer p, size_type n) {
+	void deallocate(pointer p, size_type n = 1) {
 		_deallocate(p);		// what the use of argument 'n' is ?
 	}
 

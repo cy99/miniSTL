@@ -10,10 +10,6 @@
 #include <cstddef>			// for ptrdiff_t and size_t
 #include <stdexcept>		// for std::out_of_range
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 #include "mini_allocator.h"	// for default allocator
 #include "mini_memory.h"	// for construct() and destroy()
 #include "mini_algo.h"		// for fill() and fill_n()
