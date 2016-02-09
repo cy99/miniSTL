@@ -88,7 +88,6 @@ protected:
 
 	link_type __create_root(const value_type& val = value_type()) {
 		header->parent = __create_node(val);
-		++node_count;
 		leftmost() = rightmost() = header->parent;
 		root()->parent = header;
 		return root();
@@ -551,12 +550,16 @@ public:
 
 		while (p1) {
 			p2 = p1;
-			p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;
+			relation_type _rel = __comp(val, p1->value);
+			if (_rel == LESS) p1 = p1->left;
+			else if (_rel == GREATER) p1 = p1->right;
+			else return ministl::pair<iterator, bool>(iterator(NULL), false);
+			// p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;
 		}
 
-		relation_type rel = __comp(val, p2->value);
-		child_type _which;
-
+		child_type _which = 
+			(__comp(val, p2->value) == LESS ? LEFTCHILD : RIGHTCHILD);
+#if 0
 		if (rel == LESS) {
 			_which = LEFTCHILD;
 		} else if (rel == GREATER) {
@@ -564,7 +567,7 @@ public:
 		} else {
 			return ministl::pair<iterator, bool>(iterator(NULL), false);
 		}
-
+#endif
 		return ministl::pair<iterator, bool>(
 			__insert(p2, val, _which), true
 		);
