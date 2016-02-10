@@ -5,7 +5,7 @@
  */
 
 #ifndef __MINI_STL_MULTISET_H
-#define __MINI_STL_MULTISET_H		// Working...
+#define __MINI_STL_MULTISET_H		// Done.
 
 #include "mini_functional.h"	// for functor less<T>
 #include "mini_allocator.h"		// for allocator<T>
@@ -56,6 +56,8 @@ public:
 	}
 
 	multiset(const self& x) : t(x.t) {}
+
+	~multiset() {}
 
 	self& operator=(const self& x) {
 		t = x.t;

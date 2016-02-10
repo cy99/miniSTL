@@ -4,8 +4,8 @@
  * For skilled STL and C++
  */
 
-#ifndef __MINI_STL_MAP_H
-#define __MINI_STL_MAP_H		// Done.
+#ifndef __MINI_STL_MULTIMAP_H
+#define __MINI_STL_MULTIMAP_H		// Done.
 
 #include "mini_tree.h"			// for binary search tree
 #include "mini_functional.h"	// for binary_function functor
@@ -18,7 +18,7 @@ namespace ministl {
 
 template <typename Key, typename Value, typename Compare = less<Key>, 
 	typename Alloc = allocator<ministl::pair<Key, Value> > >
-class map {
+class multimap {
 public:
 	
 
@@ -33,7 +33,7 @@ public:
 	class value_compare 
 	: public binary_function<value_type, value_type, bool> {
 
-		friend class map<Key, Value, Compare, Alloc>;
+		friend class multimap<Key, Value, Compare, Alloc>;
 
 	protected:
 		Compare comp;
@@ -46,7 +46,7 @@ public:
 
 private:
 	typedef binary_search_tree<value_type, value_compare, allocator_type> rep_type;
-	typedef map<key_type, data_type, key_compare, allocator_type> self;
+	typedef multimap<key_type, data_type, key_compare, allocator_type> self;
 
 public:
 	typedef typename allocator_type::reference    reference;
@@ -69,19 +69,19 @@ public:
 
 public:
 // Main function
-	map() : t(Compare()) {}
+	multimap() : t(Compare()) {}
 
-	explicit map(const Compare& _comp) : t(_comp) {}
+	explicit multimap(const Compare& _comp) : t(_comp) {}
 
 	template <typename InputIterator>
-	map(InputIterator first, InputIterator last, 
+	multimap(InputIterator first, InputIterator last, 
 				const Compare& _comp = Compare()) : t(_comp) {
-		t.insert_unique(first, last);
+		t.insert_equal(first, last);
 	}
 
-	map(const self& x) : t(x.t) {}
+	multimap(const self& x) : t(x.t) {}
 
-	~map() {}
+	~multimap() {}
 
 	self& operator=(const self& x) {
 		t = x.t;
@@ -116,22 +116,19 @@ public:
 	inline size_type max_size() const { return t.max_size(); }
 	void swap(self& x) { t.swap(x.t); }
 
-	data_type& operator[](const key_type& _key) {
-		return (*(insert(__wrap(_key)).first)).second;
-	}
 
 	// Insert and Erase
-	ministl::pair<iterator,bool> insert(const value_type& val) {
-		return t.insert_unique(val);
+	iterator insert(const value_type& val) {
+		return t.insert_equal(val);
 	}
 
 	iterator insert(iterator position, const value_type& val) {
-		return t.insert_unique(position, val);
+		return t.insert_equal(position, val);
 	}
 
 	template <typename InputIterator>
 	void insert(InputIterator first, InputIterator last) {
-		t.insert_unique(first, last);
+		t.insert_equal(first, last);
 	}
 
 	iterator erase(iterator position) {
@@ -150,7 +147,7 @@ public:
 
 
 public:
-// Map functions
+// Multimap functions
 	iterator find(const key_type& x) { return t.find(__wrap(x)); }
 	const_iterator find(const key_type& x) const { return t.find(__wrap(x)); }
 	size_type count(const key_type& x) const { return t.count(__wrap(x)); }
@@ -198,4 +195,4 @@ protected:
 
 }// namespace ministl
 
-#endif /* __MINI_STL_MAP_H */
+#endif /* __MINI_STL_MULTIMAP_H */
