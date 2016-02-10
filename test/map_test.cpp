@@ -108,7 +108,7 @@ int main2() {
 
 
 
-#define SCALE 7654321
+#define SCALE 12345678
 #define __SHOW 0
 
 long long random_long_long_number() {

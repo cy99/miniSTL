@@ -5,24 +5,27 @@
  */
 
 #ifndef __MINI_STL_TREE_H
-#define __MINI_STL_TREE_H		// Working...
+#define __MINI_STL_TREE_H		// Done.
+
+#define FOR_DEBUG 0	// OFF
 
 #include <cstddef>		// for ptrdiff_t and size_t
-
 #include "mini_construct.h"
 #include "mini_allocator.h"
 #include "mini_algo.h"		// for equal() and lexicographical_compare()
 #include "mini_iterator.h"	// for reverse_iterator_base<T>
 #include "mini_algo.h"		// for swap()
 #include "mini_pair.h"		// for pair<A, B>
-
 #include <new>			// for new
 
-#include <iostream>		// for debug
 
+#if FOR_DEBUG
+
+#include <iostream>		// for debug
 using std::cout;
 using std::endl;
 
+#endif
 
 namespace ministl {
 
@@ -133,6 +136,7 @@ public:
 
 // ----------------------------------------------------------------------
 // functions for debug
+#if FOR_DEBUG
 	void __show_node(link_type p) const {
 		cout << p->value << " : ";
 		if (p->left) cout << "left=>" << p->left->value << "  ";
@@ -151,6 +155,7 @@ public:
 		__show(root());
 		cout << "End of Show" << endl;
 	}
+#endif
 // ----------------------------------------------------------------------
 
 
@@ -172,6 +177,9 @@ public:
 	template <typename _Tp, typename _Cp, typename _Al>
 	friend class binary_search_tree;
 
+	template <typename _Tp, typename _Ref, typename _Ptr>
+	friend class binary_search_tree_iterator;
+
 	typedef bidirectional_iterator_tag iterator_category;
 
 	typedef T value_type;
@@ -185,9 +193,7 @@ public:
 	typedef binary_search_tree_iterator<T, Ref, Ptr> self;
 	typedef __tree_node<T> node_type;
 	typedef node_type* link_type;
-
-	friend const_iterator;
-	friend iterator;
+	
 
 
 protected:
