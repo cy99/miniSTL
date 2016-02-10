@@ -650,13 +650,7 @@ public:
 		}
 
 		relation_type rel = __comp(val, p2->value);
-		child_type _which;
-
-		if (rel == LESS) {
-			_which = LEFTCHILD;
-		} else {
-			_which = RIGHTCHILD;
-		}
+		child_type _which = (rel == LESS ? LEFTCHILD : RIGHTCHILD);
 
 		return __insert(p2, val, _which);
 	}
