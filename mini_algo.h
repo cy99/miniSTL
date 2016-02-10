@@ -102,6 +102,14 @@ void reverse(BidirectionalIterator first, BidirectionalIterator last) {
 	}
 }
 
+template <typename InputIterator, typename T>
+InputIterator find(InputIterator first, InputIterator last, const T& val) {
+	while (first != last) {
+		if (*first == val) return first;
+		++first;
+	}
+	return last;
+}
 
 }// namespace ministl
 

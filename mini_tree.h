@@ -169,7 +169,8 @@ class binary_search_tree_iterator {
 
 public:
 
-	friend binary_search_tree<T>;
+	template <typename _Tp, typename _Cp, typename _Al>
+	friend class binary_search_tree;
 
 	typedef bidirectional_iterator_tag iterator_category;
 
