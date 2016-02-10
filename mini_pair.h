@@ -23,7 +23,7 @@ struct pair {
 	second_type second;
 
 // Member functions
-	pair() {}
+	pair() : first(first_type()), second(second_type()) {}
 
 	pair(const first_type& a, const second_type& b) : first(a), second(b) {}
 

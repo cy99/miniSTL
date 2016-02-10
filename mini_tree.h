@@ -218,12 +218,16 @@ public:
 	// 先用中文写吧，到时候再删掉
 	// 下一个node是其右子树的__leftmost的点
 	// 若不存在 则找到某个祖先的右子节点不是上溯的点
+	// 特殊情况是 当node是root时 
 	inline self& operator++() {
+
 		if (node->right) {
 			node = __leftmost(node->right);
 		} else {
 			link_type tmp = node;
-			while (tmp->parent->right == tmp) { tmp = tmp->parent; }
+			if (tmp->parent->parent != tmp) {
+				while (tmp->parent->right == tmp) { tmp = tmp->parent; }
+			}
 			node = tmp->parent;
 		}
 		return *this;
@@ -236,7 +240,10 @@ public:
 	}
 
 	inline self& operator--() {
-		if (node->left) {
+		if (node->parent->parent == node && node->left->parent != node) {
+			// it is this header.
+			node = node->right;
+		} else if (node->left) {
 			node = __rightmost(node->left);
 		} else {
 			link_type tmp = node;
@@ -330,7 +337,6 @@ protected:
 	iterator __insert(link_type position, const value_type& val,
 		child_type _which = NODESELF) {
 		if (_which == NODESELF) {
-			position->value = val;
 			return position;
 		}
 
@@ -612,8 +618,7 @@ public:
 			relation_type _rel = __comp(val, p1->value);
 			if (_rel == LESS) p1 = p1->left;
 			else if (_rel == GREATER) p1 = p1->right;
-			else return ministl::pair<iterator, bool>(iterator(NULL), false);
-			// p1 = __comp(val, p1->value) == LESS ? p1->left : p1->right;
+			else return ministl::pair<iterator, bool>(p1, false);
 		}
 
 		child_type _which = 
