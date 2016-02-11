@@ -101,14 +101,14 @@ distance_type(const T&) {
 // distance
 template <typename InputIterator>
 typename iterator_traits<InputIterator>::difference_type
-__distance (InputIterator first, InputIterator last, random_access_iterator_tag) {
+__distance(InputIterator first, InputIterator last, random_access_iterator_tag) {
 	typedef typename iterator_traits<InputIterator>::difference_type diff_type;
 	return static_cast<diff_type>(last - first);
 }
 
 template <typename InputIterator>
 typename iterator_traits<InputIterator>::difference_type
-__distance (InputIterator first, InputIterator last, input_iterator_tag) {
+__distance(InputIterator first, InputIterator last, input_iterator_tag) {
 	typename iterator_traits<InputIterator>::difference_type dist = 0;
 	while (first++ != last) {++dist;}
 	return dist;
@@ -116,7 +116,7 @@ __distance (InputIterator first, InputIterator last, input_iterator_tag) {
 
 template <typename InputIterator>
 typename iterator_traits<InputIterator>::difference_type
-distance (InputIterator first, InputIterator last) {
+distance(InputIterator first, InputIterator last) {
 	return __distance(first, last, iterator_category(first));
 }
 
