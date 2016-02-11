@@ -1,6 +1,7 @@
 // set test
 #include <iostream>
 #include "../mini_set.h"
+#include <cstdlib>
 
 using std::cout;
 using std::endl;

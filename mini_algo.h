@@ -14,7 +14,7 @@ template <typename ForwardIterator, typename T>
 inline void fill(ForwardIterator first, ForwardIterator last, const T& val) {
 	// Temporary Implementation
 	while (first != last) { *(first++) = val; }
-	// TODO();	// New Effective Implementation
+	// TODO();	// Expect a new Effective Implementation
 }
 
 template <typename OutputIterator, typename Size, typename T>
@@ -22,7 +22,7 @@ inline OutputIterator fill_n(OutputIterator first, Size n, const T& val) {
 	// Temporary Implementation
 	while (n--) { *(first++) = val; }
 	return first;
-	// TODO();	// New Effective Implementation
+	// TODO();	// Expect a new Effective Implementation
 }
 
 template <typename InputIterator, typename OutputIterator>
@@ -30,7 +30,7 @@ inline OutputIterator copy(InputIterator first, InputIterator last, OutputIterat
 	// Temporary Implementation
 	while(first != last) { *(dest++) = *(first++); }
 	return dest;
-	// TODO(); // New Effective Implementation
+	// TODO(); // Expect a new Effective Implementation
 }
 
 template <typename BidirectionalIter1, typename BidirectionalIter2>
@@ -110,6 +110,10 @@ InputIterator find(InputIterator first, InputIterator last, const T& val) {
 	}
 	return last;
 }
+
+template <typename T>
+void push_heap() {}
+
 
 }// namespace ministl
 
